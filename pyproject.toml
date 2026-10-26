@@ -36,7 +36,7 @@ testing = [
   "parameterized>=0.8,<0.9",
 
   # static analysis
-  "ruff",
+  "ruff==0.11.13",  # CI-only pin: ruff of June 2025 (newer releases add rules the v0.9.9 code never saw)
   "ty",
   "lefthook",
   "cpplint",
