@@ -80,6 +80,7 @@ legend = ["LAT_ACCEL_FACTOR", "MAX_LAT_ACCEL_MEASURED", "FRICTION"]
 
 # Dashcam or fallback configured as ideal car
 "MOCK" = [10.0, 10, 0.0]
+"HONDA_CITY_7G" = [1.2, 1.2, 0.23]
 
 # Manually checked
 "HONDA_CIVIC_2022" = [2.5, 1.2, 0.15]

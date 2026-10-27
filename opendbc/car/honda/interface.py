@@ -66,6 +66,9 @@ class CarInterface(CarInterfaceBase):
     if any(0x33DA in f for f in fingerprint.values()):
       ret.flags |= HondaFlags.BOSCH_EXT_HUD.value
 
+    if 0x1C2 in fingerprint[CAN.pt]:
+      ret.flags |= HondaFlags.HAS_EPB.value
+
     # Accord ICE 1.5T CVT has different gearbox message
     if candidate == CAR.HONDA_ACCORD and 0x191 in fingerprint[CAN.pt]:
       ret.transmissionType = TransmissionType.cvt
@@ -75,6 +78,10 @@ class CarInterface(CarInterfaceBase):
     # New Civics don't have 0x191, but do have 0x1A3
     elif candidate == CAR.HONDA_CIVIC_2022 and 0x1A3 in fingerprint[CAN.pt]:
       ret.transmissionType = TransmissionType.cvt
+    # City G7 (Brazil) is a traditional CVT: gear position in 0x191 GEARBOX (same as upstream's auto-detection,
+    # which classifies any Bosch car sending 0x191 as cvt). Decoding is handled by the default GEARBOX branch in carstate.
+    elif candidate == CAR.HONDA_CITY_7G and 0x191 in fingerprint[CAN.pt]:
+      ret.transmissionType = TransmissionType.cvt
 
     # Certain Hondas have an extra steering sensor at the bottom of the steering rack,
     # which improves controls quality as it removes the steering column torsion from feedback.
@@ -83,6 +90,7 @@ class CarInterface(CarInterfaceBase):
     ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0], [0]]
     ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
     ret.lateralTuning.pid.kf = 0.00006  # conservative feed-forward
+    ret.steerActuatorDelay = 0.1
 
     if candidate in HONDA_BOSCH:
       ret.longitudinalActuatorDelay = 0.5 # s
@@ -132,6 +140,14 @@ class CarInterface(CarInterfaceBase):
     elif candidate == CAR.ACURA_ILX:
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0, 3840], [0, 3840]]  # TODO: determine if there is a dead zone at the top end
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.8], [0.24]]
+
+    elif candidate == CAR.HONDA_CITY_7G:
+      ret.steerActuatorDelay = 0.15
+      ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0, 2560], [0, 2560]]
+      CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
+      # upstream fb5ac6d3 raised the global torque ki to 0.3 (City upstream carParams ki=0.3);
+      # applied per-platform here to avoid retuning other v0.9.9 cars
+      ret.lateralTuning.torque.ki = 0.3
 
     elif candidate in (CAR.HONDA_CRV, CAR.HONDA_CRV_EU):
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0, 1000], [0, 1000]]  # TODO: determine if there is a dead zone at the top end
@@ -229,7 +245,6 @@ class CarInterface(CarInterfaceBase):
     ret.autoResumeSng = candidate in (HONDA_BOSCH | {CAR.HONDA_CIVIC})
     ret.minEnableSpeed = -1. if ret.autoResumeSng else 25.51 * CV.MPH_TO_MS
 
-    ret.steerActuatorDelay = 0.1
     ret.steerLimitTimer = 0.8
     ret.radarDelay = 0.1
 
