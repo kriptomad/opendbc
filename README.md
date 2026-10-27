@@ -21,6 +21,32 @@
 
 </div>
 
+<!-- fork-branch-note:start -->
+> [!IMPORTANT]
+> **Fork branch `firmwarecityg7-v0.9.9` -- Honda City (Brazil only) 2023 (G7) on openpilot v0.9.9 / black panda.**
+> Base: commaai/opendbc `e370a036` (the commit pinned by openpilot v0.9.9, the last release that supports the
+> STM32F4 black panda). Upstream added the City after that, so this branch backports **every** upstream change the
+> City depends on, byte for byte, without retuning other platforms. Not road tested.
+>
+> **What is new / modified on this branch (8 commits on top of `e370a036`):**
+>
+> | Commit | Files | Change |
+> |---|---|---|
+> | `34dd823b` | `car/honda/values.py`, `fingerprints.py`, `docs/CARS.md`, safety tests | `HONDA_CITY_7G` platform (`HondaBoschPlatformConfig`, `BOSCH_RADARLESS`, harness Bosch B), FW fingerprints, torque params, `STEER_THRESHOLD` 600 -- backport of the upstream City merge |
+> | `5f439d78` | `pyproject.toml` (CI only) | pin `ruff==0.11.13` so lint matches the v0.9.9 era |
+> | `256ff78c` | `car/honda/tests`, `docs/CARS.md` | City test route and CARS.md line as upstream |
+> | `ae690dd7` | `car/honda/carstate.py`, `values.py` | `HondaFlags.HAS_EPB` auto-detection (upstream `6fa346ed`): the City has no `0x1C2 EPB_STATUS`; without this it never engages |
+> | `07add98b` | `dbc/generator/honda` | `EPB_STATUS` DBC part of upstream `6fa346ed` |
+> | `d42db044` | `car/honda/interface.py` | `steerActuatorDelay` set before per-car tuning (upstream `28a16218`); the generic 0.1 was overwriting the City's 0.15 |
+> | `052a515f` | `car/honda/interface.py` | City-only `lateralTuning.torque.ki = 0.3` (upstream `fb5ac6d3` changed the global default; 0.1 kept for every other brand) |
+> | `b4125fe6` | `dbc/generator/honda/honda_civic_ex_2022_can.dbc` | `BO_ 401 GEARBOX` now has the upstream `GEARBOX_CVT` layout (`GEAR_SHIFTER` in byte 5, `1 P 2 R 3 N 4 D 7 L 10 S`); D already decoded identically, S/L now decode as upstream. Affects City, HR-V 3G and Civic 2022 exactly as upstream. `pyproject.toml` back to LF |
+>
+> `opendbc/safety` is unchanged: the City runs the existing `HONDA_BOSCH` + `RADARLESS` path, verified RX/TX-identical to
+> upstream. Audit reports, verification tools and the equivalent `git format-patch` series live in
+> [kriptomad/PandaH7Openpilot](https://github.com/kriptomad/PandaH7Openpilot/tree/main/09_FIRMWARECITYG7_BLACKPANDA).
+> Consumed by [kriptomad/openpilot@v0.9.9-cityg7-blackpanda](https://github.com/kriptomad/openpilot/tree/v0.9.9-cityg7-blackpanda).
+<!-- fork-branch-note:end -->
+
 ---
 
 Most cars since 2016 have electronically-actuatable steering, gas, and brakes thanks to [LKAS](https://en.wikipedia.org/wiki/Lane_departure_warning_system#Lane_keeping_and_next_technologies) and [ACC](https://en.wikipedia.org/wiki/Adaptive_cruise_control).
