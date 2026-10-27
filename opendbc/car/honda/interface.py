@@ -145,6 +145,9 @@ class CarInterface(CarInterfaceBase):
       ret.steerActuatorDelay = 0.15
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0, 2560], [0, 2560]]
       CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
+      # upstream fb5ac6d3 raised the global torque ki to 0.3 (City upstream carParams ki=0.3);
+      # applied per-platform here to avoid retuning other v0.9.9 cars
+      ret.lateralTuning.torque.ki = 0.3
 
     elif candidate in (CAR.HONDA_CRV, CAR.HONDA_CRV_EU):
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0, 1000], [0, 1000]]  # TODO: determine if there is a dead zone at the top end
