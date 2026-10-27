@@ -71,6 +71,10 @@ class HondaFlags(IntFlag):
 
   BOSCH_CANFD = 128
 
+  # Detected flag (backport of upstream 6fa346ed "Honda: EPB message refactor"): the City G7 BR does not
+  # send 0x1C2 EPB_STATUS, so requiring it for every Bosch car would make the CAN parser time out.
+  HAS_EPB = 512
+
 # Car button codes
 class CruiseButtons:
   RES_ACCEL = 4

@@ -66,6 +66,9 @@ class CarInterface(CarInterfaceBase):
     if any(0x33DA in f for f in fingerprint.values()):
       ret.flags |= HondaFlags.BOSCH_EXT_HUD.value
 
+    if 0x1C2 in fingerprint[CAN.pt]:
+      ret.flags |= HondaFlags.HAS_EPB.value
+
     # Accord ICE 1.5T CVT has different gearbox message
     if candidate == CAR.HONDA_ACCORD and 0x191 in fingerprint[CAN.pt]:
       ret.transmissionType = TransmissionType.cvt
@@ -74,6 +77,10 @@ class CarInterface(CarInterfaceBase):
       ret.transmissionType = TransmissionType.manual
     # New Civics don't have 0x191, but do have 0x1A3
     elif candidate == CAR.HONDA_CIVIC_2022 and 0x1A3 in fingerprint[CAN.pt]:
+      ret.transmissionType = TransmissionType.cvt
+    # City G7 (Brazil) is a traditional CVT: gear position in 0x191 GEARBOX (same as upstream's auto-detection,
+    # which classifies any Bosch car sending 0x191 as cvt). Decoding is handled by the default GEARBOX branch in carstate.
+    elif candidate == CAR.HONDA_CITY_7G and 0x191 in fingerprint[CAN.pt]:
       ret.transmissionType = TransmissionType.cvt
 
     # Certain Hondas have an extra steering sensor at the bottom of the steering rack,
